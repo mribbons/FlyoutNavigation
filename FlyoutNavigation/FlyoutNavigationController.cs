@@ -382,7 +382,34 @@ namespace FlyoutNavigation
 			NavigationItemSelected(index);
 		}
 
-		protected void NavigationItemSelected(int index)
+		public void NavigateToNonMenuView(UIViewController viewController)
+		{
+
+			if (!DisableStatusBarMoving && !ShouldStayOpen)
+				UIApplication.SharedApplication.SetStatusBarHidden(false, UIStatusBarAnimation.Fade);
+
+			bool isOpen = false;
+			if (mainView != null)
+			{
+				mainView.RemoveFromSuperview();
+				isOpen = IsOpen;
+			}
+			CurrentViewController = viewController;
+			RectangleF frame = View.Bounds;
+			if (isOpen || ShouldStayOpen)
+				frame.X = Position == FlyOutNavigationPosition.Left ? menuWidth : -menuWidth;
+
+			setViewSize();
+			SetLocation(frame);
+			View.AddSubview(mainView);
+			AddChildViewController(CurrentViewController);
+			if (!ShouldStayOpen)
+				HideMenu();
+			if (SelectedIndexChanged != null)
+				SelectedIndexChanged();
+		}
+
+		public void NavigationItemSelected(int index, UIViewController newVC = null)
 		{
 			selectedIndex = index;
 			if (viewControllers == null || viewControllers.Length <= index || index < 0)
@@ -406,7 +433,12 @@ namespace FlyoutNavigation
 				mainView.RemoveFromSuperview();
 				isOpen = IsOpen;
 			}
-			CurrentViewController = ViewControllers[SelectedIndex];
+
+			if (newVC == null)
+				CurrentViewController = ViewControllers[SelectedIndex];
+			else
+				CurrentViewController = newVC;
+
 			RectangleF frame = View.Bounds;
 			if (isOpen || ShouldStayOpen)
 				frame.X = Position == FlyOutNavigationPosition.Left ? menuWidth : -menuWidth;
